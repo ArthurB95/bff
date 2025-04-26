@@ -39,5 +39,13 @@ spring:
 fake-api:
   url: https://fakestoreapi.com
 
+topico:
+  fake-api:
+    consumer:
+      nome: fake-api-produtos-consumer
+      group-id: fake-api
+    producer:
+      nome: fake-api-produtos-producer
+
 server:
   port: 8181

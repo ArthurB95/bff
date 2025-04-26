@@ -3,6 +3,7 @@ package com.example.fake_api_us.business.service;
 import com.example.fake_api_us.api.dto.ProductsDTO;
 import com.example.fake_api_us.business.converter.ProdutoConverter;
 import com.example.fake_api_us.infrastructure.entities.ProdutoEntity;
+import com.example.fake_api_us.infrastructure.message.producer.FakeApiProducer;
 import com.example.fake_api_us.infrastructure.repositories.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ public class ProdutoService {
 
     private final ProdutoRepository repository;
     private final ProdutoConverter converter;
+    private final FakeApiProducer producer;
 
     public ProdutoEntity salvaProdutos(ProdutoEntity entity) {
         try {
@@ -28,9 +30,27 @@ public class ProdutoService {
 
     public ProductsDTO salvaProdutosDTO(ProductsDTO dto) {
         try {
-            ProdutoEntity entity = converter.toEntity(dto);
-            return converter.toDTO(repository.save(entity));
+            Boolean retorno = existsPorNome(dto.getNome());
+            if(retorno.equals(true)) {
+                throw new RuntimeException("Produto já existe no banco de dados " + dto.getNome());
+            }
+            ProdutoEntity entity = repository.save(converter.toEntity(dto));
+            return converter.toDTO(entity);
         } catch (Exception e) {
+            throw new RuntimeException("Erro ao salvar Produtos" + e);
+        }
+    }
+
+    public void salvaProdutosConsumer(ProductsDTO dto) {
+        try {
+            Boolean retorno = existsPorNome(dto.getNome());
+            if(retorno.equals(true)) {
+                producer.enviaRespostaCadastroProdutos("Produto " + dto.getNome() + " já existente no banco de dados.");
+                throw new RuntimeException("Produto já existe no banco de dados " + dto.getNome());
+            }
+            producer.enviaRespostaCadastroProdutos("Produto " + dto.getNome() + " gravado com sucesso.");
+        } catch (Exception e) {
+            producer.enviaRespostaCadastroProdutos("Erro ao gravar o produto " + dto.getNome());
             throw new RuntimeException("Erro ao salvar Produtos" + e);
         }
     }
