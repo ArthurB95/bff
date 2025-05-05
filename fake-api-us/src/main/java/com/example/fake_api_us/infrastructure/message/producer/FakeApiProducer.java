@@ -1,5 +1,6 @@
 package com.example.fake_api_us.infrastructure.message.producer;
 
+import com.example.fake_api_us.infrastructure.exception.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -22,7 +23,7 @@ public class FakeApiProducer {
         try {
             kafkaTemplate.send(topico, mensagem);
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao produzir mensagem do kafka " + e);
+            throw new BusinessException("Erro ao produzir mensagem do kafka ");
         }
     }
 

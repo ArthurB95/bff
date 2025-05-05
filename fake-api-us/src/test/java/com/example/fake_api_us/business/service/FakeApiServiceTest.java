@@ -4,6 +4,8 @@ import com.example.fake_api_us.api.dto.ProductsDTO;
 import com.example.fake_api_us.business.converter.ProdutoConverter;
 import com.example.fake_api_us.infrastructure.client.FakeApiClient;
 import com.example.fake_api_us.infrastructure.entities.ProdutoEntity;
+import com.example.fake_api_us.infrastructure.exception.BusinessException;
+import com.example.fake_api_us.infrastructure.exception.ConflictException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class FakeApiServiceTest {
+class FakeApiServiceTest {
 
     @InjectMocks
     FakeApiService service;
@@ -61,20 +63,36 @@ public class FakeApiServiceTest {
         verifyNoMoreInteractions(client, produtoService, converter);
     }
 
-//    @Test
-//    @DisplayName("Deve buscar produtos e não gravar caso retorno seja true")
-//    void deve_buscar_produtos_e_nao_gravar_caso_retorno_seja_true() {
-//        List<ProductsDTO> listaProdutosDTO = new ArrayList<>();
-//        ProductsDTO produtoDTO = ProductsDTO.builder().entityId("1245").nome("Jaqueta Vermelha").categoria("Roupas").descricao("Jaqueta Vermelha com bolsos laterais e Listras").preco(new BigDecimal(250.00)).build();
-//        listaProdutosDTO.add(produtoDTO);
-//
-//        when(client.buscaListaProdutos()).thenReturn(listaProdutosDTO);
-//        when(produtoService.existsPorNome(produtoDTO.getNome())).thenReturn(true);
-//
-//        verify(client).buscaListaProdutos();
-//        verify(produtoService).existsPorNome(produtoDTO.getNome());
-//        verifyNoMoreInteractions(client, produtoService);
-//        verifyNoInteractions(converter);
-//    }
+    @Test
+    @DisplayName("Deve buscar produtos e não gravar caso retorno seja true")
+    void deve_buscar_produtos_e_nao_gravar_caso_retorno_seja_true() {
+        List<ProductsDTO> listaProdutosDTO = new ArrayList<>();
+        ProductsDTO produtoDTO = ProductsDTO.builder().entityId("1245").nome("Jaqueta Vermelha").categoria("Roupas").descricao("Jaqueta Vermelha com bolsos laterais e Listras").preco(new BigDecimal(250.00)).build();
+        listaProdutosDTO.add(produtoDTO);
+
+        when(client.buscaListaProdutos()).thenReturn(listaProdutosDTO);
+        when(produtoService.existsPorNome(produtoDTO.getNome())).thenReturn(true);
+
+        ConflictException e = assertThrows(ConflictException.class, () -> service.buscaProdutos());
+
+        assertThat(e.getMessage()).isEqualTo("Produto já existente no banco de dados Jaqueta Vermelha");
+        verify(client).buscaListaProdutos();
+        verify(produtoService).existsPorNome(produtoDTO.getNome());
+        verifyNoMoreInteractions(client, produtoService);
+        verifyNoInteractions(converter);
+    }
+
+    @Test
+    @DisplayName("Deve gerar exception caso erro ao buscar produtos via client")
+    void deve_gerar_exception_caso_erro_ao_buscar_produtos_via_client() {
+        when(client.buscaListaProdutos()).thenThrow(new RuntimeException("Erro ao buscar Lista de Produtos"));
+
+        BusinessException e = assertThrows(BusinessException.class, () -> service.buscaProdutos());
+
+        assertThat(e.getMessage()).isEqualTo("Erro ao buscar e gravar produtos no banco de dados");
+        verify(client).buscaListaProdutos();
+        verifyNoMoreInteractions(client);
+        verifyNoInteractions(converter, produtoService);
+    }
 
 }

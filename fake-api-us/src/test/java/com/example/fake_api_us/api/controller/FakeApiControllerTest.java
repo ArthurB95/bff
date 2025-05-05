@@ -2,7 +2,6 @@ package com.example.fake_api_us.api.controller;
 
 import com.example.fake_api_us.api.dto.ProductsDTO;
 import com.example.fake_api_us.business.service.FakeApiService;
-import com.example.fake_api_us.business.service.FakeApiServiceTest;
 import com.example.fake_api_us.business.service.ProdutoService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
