@@ -3,7 +3,6 @@ package com.example.fake_api_us.infrastructure.message.consumer;
 import com.example.fake_api_us.api.dto.ProductsDTO;
 import com.example.fake_api_us.business.service.ProdutoService;
 import lombok.AllArgsConstructor;
-import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyFactorySpi;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
